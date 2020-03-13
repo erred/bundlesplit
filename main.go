@@ -129,7 +129,7 @@ func addBase(path, ns, base string, res []string) {
 	}
 
 	bases := []string{base}
-	bs, ok := kustom["Bases"].([]string)
+	bs, ok := kustom["bases"].([]string)
 	if ok {
 		bases = append(bases, bs...)
 	}

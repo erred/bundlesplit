@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"errors"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -22,15 +23,25 @@ type Namespace struct {
 }
 
 func main() {
-	if len(os.Args) != 3 {
-		fmt.Fprintf(os.Stderr, "usage: %s appname [FILE | URL]\n", os.Args[0])
-		os.Exit(1)
-	}
-	app, uri := os.Args[1], os.Args[2]
+	var (
+		ns, app, file, uri string
+		err                error
+		b                  []byte
+	)
+	flag.StringVar(&ns, "n", "default", "namespace")
+	flag.StringVar(&app, "a", "", "appname")
+	flag.StringVar(&file, "f", "", "file name")
+	flag.StringVar(&uri, "u", "", "url")
+	flag.Parse()
 
 	// Get bundle
-	b, err := ioutil.ReadFile(os.Args[1])
-	if perr := (&os.PathError{}); errors.As(err, &perr) {
+	if file != "" {
+		b, err = ioutil.ReadFile(file)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "read %s: %v\n", file, err)
+			os.Exit(1)
+		}
+	} else if uri != "" {
 		r, err := http.Get(uri)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "GET %s: %v\n", uri, err)
@@ -42,10 +53,12 @@ func main() {
 			fmt.Fprintf(os.Stderr, "read response: %v\n", err)
 			os.Exit(1)
 		}
+	} else {
+		fmt.Fprintf(os.Stderr, "no input\n")
+		os.Exit(1)
 	}
 
 	// split out files
-	var ns string
 	bb := bytes.Split(b, []byte("\n---\n"))
 	kinds := map[string][][]byte{}
 	for i := range bb {
@@ -59,9 +72,6 @@ func main() {
 			os.Exit(1)
 		}
 		kind := m["kind"].(string)
-		if kind == "Namespace" {
-			ns = m["metadata"].(map[string]interface{})["name"].(string)
-		}
 		kinds[kind] = append(kinds[kind], bb[i])
 	}
 	delete(kinds, "Namespace")

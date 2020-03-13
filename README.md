@@ -15,8 +15,8 @@ GO111MODULE=on go get github.com/seankhliao/bundlesplit
 ## Usage
 
 ```bash
-bundlesplit appname FILE
-bundlesplit appname URL
+bundlesplit -n namespace -a appname -f FILE
+bundlesplit -n namespace -a appname -u URL
 ```
 
 results in

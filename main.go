@@ -49,6 +49,9 @@ func main() {
 	bb := bytes.Split(b, []byte("\n---\n"))
 	kinds := map[string][][]byte{}
 	for i := range bb {
+		if len(bytes.TrimSpace(bb[i])) == 0 {
+			continue
+		}
 		var m map[string]interface{}
 		err = yaml.Unmarshal(bb[i], &m)
 		if err != nil {
